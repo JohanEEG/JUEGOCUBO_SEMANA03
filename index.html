@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cubo Ética Digital</title>
+    <title>Cubo Ética Digital 3D</title>
     <style>
         :root {
             --color-rosa: #FFE3EE;
@@ -28,43 +28,58 @@
 
         h1 {
             color: #333;
-            margin-bottom: 50px;
+            margin-bottom: 60px;
         }
 
-        /* Contenedor del render 3D */
+        /* Contenedor de la escena con profundidad */
         .scene {
             width: 200px;
             height: 200px;
-            perspective: 600px;
-            margin-bottom: 50px;
+            perspective: 800px;
+            margin-bottom: 60px;
         }
 
+        /* El Cubo 3D */
         .cube {
             width: 100%;
             height: 100%;
             position: relative;
             transform-style: preserve-3d;
-            transform: translateZ(-100px) rotateX(-15deg) rotateY(15deg);
+            /* Ángulo inicial isométrico para que se note el 3D al cargar */
+            transform: translateZ(-100px) rotateX(-25deg) rotateY(45deg);
             transition: transform 3s cubic-bezier(0.2, 0.8, 0.3, 1);
         }
 
-        /* Estilizado de las Caras */
+        /* Clase de animación para el giro flotante constante */
+        .cube.spinning {
+            animation: flotarYGirar 12s infinite linear;
+        }
+
+        /* Animación para que flote en el aire mostrando que es 3D */
+        @keyframes flotarYGirar {
+            0% { transform: translateZ(-100px) rotateX(-25deg) rotateY(0deg); }
+            100% { transform: translateZ(-100px) rotateX(-25deg) rotateY(360deg); }
+        }
+
+        /* Estilizado común de las caras con bordes limpios */
         .cube__face {
             position: absolute;
             width: 200px;
             height: 200px;
-            border: 2px solid #555;
+            border: 2px solid #444;
             line-height: 200px;
             font-size: 18px;
             font-weight: bold;
             text-align: center;
             color: #111;
-            border-radius: 10px;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            /* El sombreado interno ayuda a darle volumen 3D a cada plano */
+            box-shadow: inset 0 0 25px rgba(0,0,0,0.15), 0 0 5px rgba(0,0,0,0.05);
             user-select: none;
+            backface-visibility: visible; /* Permite ver las caras traseras translúcidas si se quiere */
         }
 
-        /* Posiciones 3D de las caras */
+        /* Posiciones espaciales en los ejes integrando los colores reales */
         .cube__face--1 { background: var(--color-rosa);     transform: rotateY(  0deg) translateZ(100px); }
         .cube__face--2 { background: var(--color-amarillo); transform: rotateY( 90deg) translateZ(100px); }
         .cube__face--3 { background: var(--color-naranja);  transform: rotateY(180deg) translateZ(100px); }
@@ -72,8 +87,9 @@
         .cube__face--5 { background: var(--color-morado);   transform: rotateX( 90deg) translateZ(100px); }
         .cube__face--6 { background: var(--color-azul);     transform: rotateX(-90deg) translateZ(100px); }
 
-        button {
-            padding: 12px 24px;
+        /* Botón de acción */
+        button.roll-btn {
+            padding: 14px 30px;
             font-size: 18px;
             font-weight: bold;
             background: #2ecc71;
@@ -81,13 +97,14 @@
             border: none;
             border-radius: 25px;
             cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: 0.2s;
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+            transition: 0.2s ease;
         }
 
-        button:hover { background: #27ae60; transform: scale(1.05); }
+        button.roll-btn:hover { background: #27ae60; transform: scale(1.05); }
+        button.roll-btn:disabled { background: #95a5a6; box-shadow: none; cursor: not-allowed; }
 
-        /* Modal para mostrar el reto breve */
+        /* Estilos del Modal */
         .modal {
             display: none;
             position: fixed;
@@ -104,24 +121,26 @@
             border-radius: 15px;
             max-width: 450px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            animation: fadeIn 0.4s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .modal-header {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
-            padding: 5px 15px;
-            border-radius: 5px;
+            padding: 6px 18px;
+            border-radius: 20px;
             display: inline-block;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
         }
 
-        .modal-body { font-size: 16px; line-height: 1.5; color: #333; margin-bottom: 20px;}
-        .modal-timer { font-weight: bold; color: #e74c3c; margin-bottom: 15px; }
-        .close-btn { background: #34495e; color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        .modal-body { font-size: 16px; line-height: 1.6; color: #333; margin-bottom: 25px; text-align: left;}
+        .modal-timer { font-weight: bold; color: #e74c3c; margin-bottom: 20px; font-size: 15px; }
+        .close-btn { background: #34495e; color: white; padding: 10px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;}
+        .close-btn:hover { background: #2c3e50; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -129,7 +148,7 @@
     <h1>🎲 Dados de Ética y Responsabilidad</h1>
 
     <div class="scene">
-        <div class="cube" id="cube">
+        <div class="cube spinning" id="cube">
             <div class="cube__face cube__face--1">🔑 Decisión</div>
             <div class="cube__face cube__face--2">🔍 Verificación</div>
             <div class="cube__face cube__face--3">🧠 Conexión</div>
@@ -139,7 +158,7 @@
         </div>
     </div>
 
-    <button onclick="lanzarCubo()">¡Lanzar Cubo!</button>
+    <button class="roll-btn" id="btnLanzar" onclick="lanzarCubo()">¡Lanzar Cubo!</button>
 
     <div class="modal" id="modal">
         <div class="modal-content">
@@ -151,21 +170,20 @@
     </div>
 
     <script>
-        // Data estructurada con tus imágenes reducidas a lo esencial
         const retos = {
             1: {
                 titulo: "🔑 Ética en Acción", color: "var(--color-rosa)",
                 texto: "<b>Caso:</b> Sos dev junior. Tu jefe pide recopilar ubicación de usuarios sin permiso. Necesitás el trabajo.<br><br><b>Reto:</b> ¿Qué hacés? Justificá usando autonomía, conciencia moral o consecuencias.",
-                tiempo: "⏱️ Tiempo: 30 segundos."
+                tiempo: "⏱️ Tiempo para responder: 30 segundos."
             },
             2: {
                 titulo: "🔍 Dominio de la Información", color: "var(--color-amarillo)",
                 texto: "<b>Reto:</b> Artículo dice que U pública fue hackeada (80k expedientes). El sitio web tiene 3 semanas y no tiene autor.<br><br><b>Pregunta:</b> ¿Cómo verificás? Nombrá 3 pasos concretos antes de reenviarlo.",
-                tiempo: "⏱️ Tiempo: 40 segundos."
+                tiempo: "⏱️ Tiempo para responder: 40 segundos."
             },
             3: {
                 titulo: "🧠 Reto STEAM", color: "var(--color-naranja)",
-                texto: "<b>Clasificá estos casos en los temas del cubo:</b><br>1. GPS apagado pero Maps guarda ruta.<br>2. Empleado publica ganancias internas en LinkedIn.<br>3. IA rechaza crédito sin dar explicación.<br>4. U revisa tu correo sin avisar.<br>5. Periódico usa tu foto en protesta sin permiso.",
+                texto: "<b>Clasificá estos casos en los temas del cubo:</b><br><br>1. GPS apagado pero Maps guarda ruta.<br>2. Empleado publica ganancias internas en LinkedIn.<br>3. IA rechaza crédito sin dar explicación.<br>4. U revisa tu correo sin avisar.<br>5. Periódico usa tu foto en protesta sin permiso.",
                 tiempo: "💡 Puntos: Clasificá bien 4 de 5 para 2p (Bonus: explica por qué +1p)."
             },
             4: {
@@ -185,7 +203,7 @@
             }
         };
 
-        // Coordenadas exactas para que el cubo caiga perfectamente en cada cara
+        // Ángulos exactos para clavar el frente de cada cara limpia al detenerse
         const codigosCaras = {
             1: { x: 0,    y: 0 },
             2: { x: 0,    y: -90 },
@@ -197,21 +215,29 @@
 
         function lanzarCubo() {
             const cubo = document.getElementById('cube');
+            const boton = document.getElementById('btnLanzar');
+            
+            boton.disabled = true;
+            // 1. Quitamos la animación de giro automático para tomar el control por JS
+            cubo.classList.remove('spinning');
+            
             const caraGanadora = Math.floor(Math.random() * 6) + 1;
             
-            // Multiplicadores grandes para simular giros locos antes de frenar
-            const girosX = (Math.floor(Math.random() * 4) + 3) * 360;
-            const girosY = (Math.floor(Math.random() * 4) + 3) * 360;
+            // Forzamos revoluciones completas (entre 3 y 6 vueltas completas) para el efecto visual
+            const vueltasX = (Math.floor(Math.random() * 3) + 3) * 360;
+            const vueltasY = (Math.floor(Math.random() * 3) + 3) * 360;
 
-            const destino = codigosCaras[caraGanadora];
-            const finalX = girosX + destino.x;
-            const finalY = girosY + destino.y;
+            const coordenadasDestino = codigosCaras[caraGanadora];
+            const finalX = vueltasX + coordenadasDestino.x;
+            const finalY = vueltasY + coordenadasDestino.y;
 
+            // 2. Ejecutamos el lanzamiento caótico pero controlado
             cubo.style.transform = `translateZ(-100px) rotateX(${finalX}deg) rotateY(${finalY}deg)`;
 
-            // Esperar que termine la transición de 3s para abrir la pregunta
+            // 3. Esperamos los 3 segundos de animación CSS para abrir el reto
             setTimeout(() => {
                 mostrarReto(caraGanadora);
+                boton.disabled = false;
             }, 3100);
         }
 
@@ -226,6 +252,17 @@
 
         function cerrarModal() {
             document.getElementById('modal').style.display = 'none';
+            const cubo = document.getElementById('cube');
+            
+            // 4. Cuando cierran el modal, devolvemos el cubo a su estado de giro fluido e interactivo
+            cubo.style.transition = 'none';
+            cubo.style.transform = 'translateZ(-100px) rotateX(-25deg) rotateY(0deg)';
+            
+            // Truco para resetear el flujo del navegador antes de volver a aplicar la clase
+            void cubo.offsetWidth; 
+            
+            cubo.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)';
+            cubo.classList.add('spinning');
         }
     </script>
 </body>
