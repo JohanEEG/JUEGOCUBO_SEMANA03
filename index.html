@@ -31,7 +31,6 @@
             margin-bottom: 60px;
         }
 
-        /* Contenedor de la escena con profundidad */
         .scene {
             width: 200px;
             height: 200px;
@@ -39,29 +38,34 @@
             margin-bottom: 60px;
         }
 
-        /* El Cubo 3D */
-        .cube {
+        /* CONTENEDOR PADRE: Solo maneja el giro constante */
+        .cube-spinner {
             width: 100%;
             height: 100%;
             position: relative;
             transform-style: preserve-3d;
-            /* Ángulo inicial isométrico para que se note el 3D al cargar */
-            transform: translateZ(-100px) rotateX(-25deg) rotateY(45deg);
-            transition: transform 3s cubic-bezier(0.2, 0.8, 0.3, 1);
         }
 
-        /* Clase de animación para el giro flotante constante */
-        .cube.spinning {
-            animation: flotarYGirar 12s infinite linear;
+        /* Clase activa para el giro fluido continuo */
+        .cube-spinner.spinning {
+            animation: rotarContinuo 14s infinite linear;
         }
 
-        /* Animación para que flote en el aire mostrando que es 3D */
-        @keyframes flotarYGirar {
-            0% { transform: translateZ(-100px) rotateX(-25deg) rotateY(0deg); }
-            100% { transform: translateZ(-100px) rotateX(-25deg) rotateY(360deg); }
+        @keyframes rotarContinuo {
+            0% { transform: rotateX(-20deg) rotateY(0deg); }
+            100% { transform: rotateX(-20deg) rotateY(360deg); }
         }
 
-        /* Estilizado común de las caras con bordes limpios */
+        /* CONTENEDOR HIJO: Solo maneja la rotación del lanzamiento de JS */
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            transition: transform 3s cubic-bezier(0.2, 0.8, 0.25, 1);
+            transform: translateZ(-100px);
+        }
+
         .cube__face {
             position: absolute;
             width: 200px;
@@ -73,13 +77,10 @@
             text-align: center;
             color: #111;
             border-radius: 8px;
-            /* El sombreado interno ayuda a darle volumen 3D a cada plano */
             box-shadow: inset 0 0 25px rgba(0,0,0,0.15), 0 0 5px rgba(0,0,0,0.05);
             user-select: none;
-            backface-visibility: visible; /* Permite ver las caras traseras translúcidas si se quiere */
         }
 
-        /* Posiciones espaciales en los ejes integrando los colores reales */
         .cube__face--1 { background: var(--color-rosa);     transform: rotateY(  0deg) translateZ(100px); }
         .cube__face--2 { background: var(--color-amarillo); transform: rotateY( 90deg) translateZ(100px); }
         .cube__face--3 { background: var(--color-naranja);  transform: rotateY(180deg) translateZ(100px); }
@@ -87,7 +88,6 @@
         .cube__face--5 { background: var(--color-morado);   transform: rotateX( 90deg) translateZ(100px); }
         .cube__face--6 { background: var(--color-azul);     transform: rotateX(-90deg) translateZ(100px); }
 
-        /* Botón de acción */
         button.roll-btn {
             padding: 14px 30px;
             font-size: 18px;
@@ -104,7 +104,6 @@
         button.roll-btn:hover { background: #27ae60; transform: scale(1.05); }
         button.roll-btn:disabled { background: #95a5a6; box-shadow: none; cursor: not-allowed; }
 
-        /* Estilos del Modal */
         .modal {
             display: none;
             position: fixed;
@@ -138,8 +137,7 @@
         .modal-body { font-size: 16px; line-height: 1.6; color: #333; margin-bottom: 25px; text-align: left;}
         .modal-timer { font-weight: bold; color: #e74c3c; margin-bottom: 20px; font-size: 15px; }
         .close-btn { background: #34495e; color: white; padding: 10px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;}
-        .close-btn:hover { background: #2c3e50; }
-
+        
         @keyframes popIn { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
@@ -148,13 +146,15 @@
     <h1>🎲 Dados de Ética y Responsabilidad</h1>
 
     <div class="scene">
-        <div class="cube spinning" id="cube">
-            <div class="cube__face cube__face--1">🔑 Decisión</div>
-            <div class="cube__face cube__face--2">🔍 Verificación</div>
-            <div class="cube__face cube__face--3">🧠 Conexión</div>
-            <div class="cube__face cube__face--4">🔒 Privacidad</div>
-            <div class="cube__face cube__face--5">⚖️ Veracidad</div>
-            <div class="cube__face cube__face--6">🛡️ Protección</div>
+        <div class="cube-spinner spinning" id="cubeSpinner">
+            <div class="cube" id="cube">
+                <div class="cube__face cube__face--1">🔑 Decisión</div>
+                <div class="cube__face cube__face--2">🔍 Verificación</div>
+                <div class="cube__face cube__face--3">🧠 Conexión</div>
+                <div class="cube__face cube__face--4">🔒 Privacidad</div>
+                <div class="cube__face cube__face--5">⚖️ Veracidad</div>
+                <div class="cube__face cube__face--6">🛡️ Protección</div>
+            </div>
         </div>
     </div>
 
@@ -203,7 +203,6 @@
             }
         };
 
-        // Ángulos exactos para clavar el frente de cada cara limpia al detenerse
         const codigosCaras = {
             1: { x: 0,    y: 0 },
             2: { x: 0,    y: -90 },
@@ -214,16 +213,22 @@
         };
 
         function lanzarCubo() {
+            const spinner = document.getElementById('cubeSpinner');
             const cubo = document.getElementById('cube');
             const boton = document.getElementById('btnLanzar');
             
             boton.disabled = true;
-            // 1. Quitamos la animación de giro automático para tomar el control por JS
-            cubo.classList.remove('spinning');
             
+            // 1. Pausamos el giro continuo fijando su posición actual antes de quitar la clase
+            const computedStyle = window.getComputedStyle(spinner);
+            const currentTransform = computedStyle.transform;
+            spinner.style.transform = currentTransform;
+            spinner.classList.remove('spinning');
+            
+            // 2. Elegimos cara ganadora aleatoria
             const caraGanadora = Math.floor(Math.random() * 6) + 1;
             
-            // Forzamos revoluciones completas (entre 3 y 6 vueltas completas) para el efecto visual
+            // Giros caóticos sumados a la cara final
             const vueltasX = (Math.floor(Math.random() * 3) + 3) * 360;
             const vueltasY = (Math.floor(Math.random() * 3) + 3) * 360;
 
@@ -231,10 +236,9 @@
             const finalX = vueltasX + coordenadasDestino.x;
             const finalY = vueltasY + coordenadasDestino.y;
 
-            // 2. Ejecutamos el lanzamiento caótico pero controlado
+            // 3. El cubo interno gira con transiciones suaves
             cubo.style.transform = `translateZ(-100px) rotateX(${finalX}deg) rotateY(${finalY}deg)`;
 
-            // 3. Esperamos los 3 segundos de animación CSS para abrir el reto
             setTimeout(() => {
                 mostrarReto(caraGanadora);
                 boton.disabled = false;
@@ -252,17 +256,14 @@
 
         function cerrarModal() {
             document.getElementById('modal').style.display = 'none';
+            
+            const spinner = document.getElementById('cubeSpinner');
             const cubo = document.getElementById('cube');
             
-            // 4. Cuando cierran el modal, devolvemos el cubo a su estado de giro fluido e interactivo
-            cubo.style.transition = 'none';
-            cubo.style.transform = 'translateZ(-100px) rotateX(-25deg) rotateY(0deg)';
-            
-            // Truco para resetear el flujo del navegador antes de volver a aplicar la clase
-            void cubo.offsetWidth; 
-            
-            cubo.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)';
-            cubo.classList.add('spinning');
+            // 4. Resetear los estilos limpios del cubo interno y reactivar el spinner infinito padre
+            cubo.style.transform = 'translateZ(-100px)';
+            spinner.style.transform = 'none';
+            spinner.classList.add('spinning');
         }
     </script>
 </body>
