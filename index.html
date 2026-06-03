@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cubo Ética Digital</title>
+    <style>
+        :root {
+            --color-rosa: #FFE3EE;
+            --color-amarillo: #FFF2B2;
+            --color-naranja: #FFD1B3;
+            --color-verde: #D4EDDA;
+            --color-morado: #E2D9F3;
+            --color-azul: #CCE5FF;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f7f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 50px;
+        }
+
+        /* Contenedor del render 3D */
+        .scene {
+            width: 200px;
+            height: 200px;
+            perspective: 600px;
+            margin-bottom: 50px;
+        }
+
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: translateZ(-100px) rotateX(-15deg) rotateY(15deg);
+            transition: transform 3s cubic-bezier(0.2, 0.8, 0.3, 1);
+        }
+
+        /* Estilizado de las Caras */
+        .cube__face {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border: 2px solid #555;
+            line-height: 200px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            color: #111;
+            border-radius: 10px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+            user-select: none;
+        }
+
+        /* Posiciones 3D de las caras */
+        .cube__face--1 { background: var(--color-rosa);     transform: rotateY(  0deg) translateZ(100px); }
+        .cube__face--2 { background: var(--color-amarillo); transform: rotateY( 90deg) translateZ(100px); }
+        .cube__face--3 { background: var(--color-naranja);  transform: rotateY(180deg) translateZ(100px); }
+        .cube__face--4 { background: var(--color-verde);    transform: rotateY(-90deg) translateZ(100px); }
+        .cube__face--5 { background: var(--color-morado);   transform: rotateX( 90deg) translateZ(100px); }
+        .cube__face--6 { background: var(--color-azul);     transform: rotateX(-90deg) translateZ(100px); }
+
+        button {
+            padding: 12px 24px;
+            font-size: 18px;
+            font-weight: bold;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: 0.2s;
+        }
+
+        button:hover { background: #27ae60; transform: scale(1.05); }
+
+        /* Modal para mostrar el reto breve */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: fadeIn 0.4s ease;
+        }
+
+        .modal-header {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .modal-body { font-size: 16px; line-height: 1.5; color: #333; margin-bottom: 20px;}
+        .modal-timer { font-weight: bold; color: #e74c3c; margin-bottom: 15px; }
+        .close-btn { background: #34495e; color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <h1>🎲 Dados de Ética y Responsabilidad</h1>
+
+    <div class="scene">
+        <div class="cube" id="cube">
+            <div class="cube__face cube__face--1">🔑 Decisión</div>
+            <div class="cube__face cube__face--2">🔍 Verificación</div>
+            <div class="cube__face cube__face--3">🧠 Conexión</div>
+            <div class="cube__face cube__face--4">🔒 Privacidad</div>
+            <div class="cube__face cube__face--5">⚖️ Veracidad</div>
+            <div class="cube__face cube__face--6">🛡️ Protección</div>
+        </div>
+    </div>
+
+    <button onclick="lanzarCubo()">¡Lanzar Cubo!</button>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalTitle"></div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-timer" id="modalTimer"></div>
+            <button class="close-btn" onclick="cerrarModal()">Entendido</button>
+        </div>
+    </div>
+
+    <script>
+        // Data estructurada con tus imágenes reducidas a lo esencial
+        const retos = {
+            1: {
+                titulo: "🔑 Ética en Acción", color: "var(--color-rosa)",
+                texto: "<b>Caso:</b> Sos dev junior. Tu jefe pide recopilar ubicación de usuarios sin permiso. Necesitás el trabajo.<br><br><b>Reto:</b> ¿Qué hacés? Justificá usando autonomía, conciencia moral o consecuencias.",
+                tiempo: "⏱️ Tiempo: 30 segundos."
+            },
+            2: {
+                titulo: "🔍 Dominio de la Información", color: "var(--color-amarillo)",
+                texto: "<b>Reto:</b> Artículo dice que U pública fue hackeada (80k expedientes). El sitio web tiene 3 semanas y no tiene autor.<br><br><b>Pregunta:</b> ¿Cómo verificás? Nombrá 3 pasos concretos antes de reenviarlo.",
+                tiempo: "⏱️ Tiempo: 40 segundos."
+            },
+            3: {
+                titulo: "🧠 Reto STEAM", color: "var(--color-naranja)",
+                texto: "<b>Clasificá estos casos en los temas del cubo:</b><br>1. GPS apagado pero Maps guarda ruta.<br>2. Empleado publica ganancias internas en LinkedIn.<br>3. IA rechaza crédito sin dar explicación.<br>4. U revisa tu correo sin avisar.<br>5. Periódico usa tu foto en protesta sin permiso.",
+                tiempo: "💡 Puntos: Clasificá bien 4 de 5 para 2p (Bonus: explica por qué +1p)."
+            },
+            4: {
+                titulo: "🔒 Privacidad bajo presión", color: "var(--color-verde)",
+                texto: "<b>Caso:</b> Clínica usa IA para predecir enfermedades y vende datos a aseguradoras. Clientes firmaron 'uso para mejoras de servicio' hace 5 años.<br><br><b>Respondé:</b> Acto ético del médico que lo descubre y Acción legal en Costa Rica (Pista: PRODAP).",
+                tiempo: ""
+            },
+            5: {
+                titulo: "⚖️ Libertad con responsabilidad", color: "var(--color-morado)",
+                texto: "<b>Situación:</b> Influencer (200k seguidores) ataca supermercado con video editado/anónimo. El negocio recibe amenazas en 6h. Era publicidad pagada por la competencia.<br><br><b>Pregunta:</b> ¿Se publicó bien? ¿Quién responde? ¿Qué consecuencias debe haber?",
+                tiempo: ""
+            },
+            6: {
+                titulo: "🛡️ Mis Derechos Digitales", color: "var(--color-azul)",
+                texto: "<b>Caso:</b> Cancelás app de delivery. Un mes después te llega publicidad con tus pedidos anteriores. La empresa dice que los datos 'ya son suyos'.<br><br><b>Pregunta:</b> ¿Qué derecho se violó? ¿Qué podés exigir legalmente?",
+                tiempo: ""
+            }
+        };
+
+        // Coordenadas exactas para que el cubo caiga perfectamente en cada cara
+        const codigosCaras = {
+            1: { x: 0,    y: 0 },
+            2: { x: 0,    y: -90 },
+            3: { x: 0,    y: 180 },
+            4: { x: 0,    y: 90 },
+            5: { x: -90,  y: 0 },
+            6: { x: 90,   y: 0 }
+        };
+
+        function lanzarCubo() {
+            const cubo = document.getElementById('cube');
+            const caraGanadora = Math.floor(Math.random() * 6) + 1;
+            
+            // Multiplicadores grandes para simular giros locos antes de frenar
+            const girosX = (Math.floor(Math.random() * 4) + 3) * 360;
+            const girosY = (Math.floor(Math.random() * 4) + 3) * 360;
+
+            const destino = codigosCaras[caraGanadora];
+            const finalX = girosX + destino.x;
+            const finalY = girosY + destino.y;
+
+            cubo.style.transform = `translateZ(-100px) rotateX(${finalX}deg) rotateY(${finalY}deg)`;
+
+            // Esperar que termine la transición de 3s para abrir la pregunta
+            setTimeout(() => {
+                mostrarReto(caraGanadora);
+            }, 3100);
+        }
+
+        function mostrarReto(id) {
+            const reto = retos[id];
+            document.getElementById('modalTitle').innerText = reto.titulo;
+            document.getElementById('modalTitle').style.backgroundColor = reto.color;
+            document.getElementById('modalBody').innerHTML = reto.texto;
+            document.getElementById('modalTimer').innerText = reto.tiempo;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
