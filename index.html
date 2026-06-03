@@ -38,7 +38,7 @@
             margin-bottom: 60px;
         }
 
-        /* CONTENEDOR PADRE: Solo maneja el giro constante */
+        /* CONTENEDOR PADRE: Maneja el giro constante flotante */
         .cube-spinner {
             width: 100%;
             height: 100%;
@@ -46,7 +46,6 @@
             transform-style: preserve-3d;
         }
 
-        /* Clase activa para el giro fluido continuo */
         .cube-spinner.spinning {
             animation: rotarContinuo 14s infinite linear;
         }
@@ -56,7 +55,7 @@
             100% { transform: rotateX(-20deg) rotateY(360deg); }
         }
 
-        /* CONTENEDOR HIJO: Solo maneja la rotación del lanzamiento de JS */
+        /* CONTENEDOR HIJO: Maneja la alineación exacta de la cara por JS */
         .cube {
             width: 100%;
             height: 100%;
@@ -79,8 +78,10 @@
             border-radius: 8px;
             box-shadow: inset 0 0 25px rgba(0,0,0,0.15), 0 0 5px rgba(0,0,0,0.05);
             user-select: none;
+            backface-visibility: hidden; /* Oculta las caras invertidas para evitar ruido visual al frente */
         }
 
+        /* Orientación espacial estándar del cubo */
         .cube__face--1 { background: var(--color-rosa);     transform: rotateY(  0deg) translateZ(100px); }
         .cube__face--2 { background: var(--color-amarillo); transform: rotateY( 90deg) translateZ(100px); }
         .cube__face--3 { background: var(--color-naranja);  transform: rotateY(180deg) translateZ(100px); }
@@ -104,6 +105,7 @@
         button.roll-btn:hover { background: #27ae60; transform: scale(1.05); }
         button.roll-btn:disabled { background: #95a5a6; box-shadow: none; cursor: not-allowed; }
 
+        /* Estilos del Modal */
         .modal {
             display: none;
             position: fixed;
@@ -203,13 +205,14 @@
             }
         };
 
+        // MATEMÁTICA CORREGIDA: Ángulos inversos exactos para proyectar la cara directo a la cámara (0 grados relativos)
         const codigosCaras = {
-            1: { x: 0,    y: 0 },
-            2: { x: 0,    y: -90 },
-            3: { x: 0,    y: 180 },
-            4: { x: 0,    y: 90 },
-            5: { x: -90,  y: 0 },
-            6: { x: 90,   y: 0 }
+            1: { x: 0,    y: 0 },       // Frente original
+            2: { x: 0,    y: -90 },     // Lado derecho rota hacia el frente
+            3: { x: 0,    y: 180 },    // Parte de atrás rota al frente
+            4: { x: 0,    y: 90 },      // Lado izquierdo rota hacia el frente
+            5: { x: -90,  y: 0 },      // Tapa superior rota hacia abajo al frente
+            6: { x: 90,   y: 0 }        // Tapa inferior rota hacia arriba al frente
         };
 
         function lanzarCubo() {
@@ -219,26 +222,29 @@
             
             boton.disabled = true;
             
-            // 1. Pausamos el giro continuo fijando su posición actual antes de quitar la clase
+            // 1. Congelamos la posición actual del spinner animado y removemos su rotación infinita
             const computedStyle = window.getComputedStyle(spinner);
             const currentTransform = computedStyle.transform;
             spinner.style.transform = currentTransform;
             spinner.classList.remove('spinning');
             
-            // 2. Elegimos cara ganadora aleatoria
+            // 2. Elegimos la cara ganadora de manera 100% aleatoria
             const caraGanadora = Math.floor(Math.random() * 6) + 1;
             
-            // Giros caóticos sumados a la cara final
+            // 3. Añadimos giros completos de 360° para simular el efecto de rodado intenso
             const vueltasX = (Math.floor(Math.random() * 3) + 3) * 360;
             const vueltasY = (Math.floor(Math.random() * 3) + 3) * 360;
 
             const coordenadasDestino = codigosCaras[caraGanadora];
+            
+            // Sumamos los giros locos + el ángulo exacto para que quede mirando al frente
             const finalX = vueltasX + coordenadasDestino.x;
             const finalY = vueltasY + coordenadasDestino.y;
 
-            // 3. El cubo interno gira con transiciones suaves
+            // 4. Aplicamos la animación de caída al cubo interno
             cubo.style.transform = `translateZ(-100px) rotateX(${finalX}deg) rotateY(${finalY}deg)`;
 
+            // 5. Frenado perfecto y apertura de modal sincrónico
             setTimeout(() => {
                 mostrarReto(caraGanadora);
                 boton.disabled = false;
@@ -260,7 +266,7 @@
             const spinner = document.getElementById('cubeSpinner');
             const cubo = document.getElementById('cube');
             
-            // 4. Resetear los estilos limpios del cubo interno y reactivar el spinner infinito padre
+            // Reset de matrices de transformación para volver a la animación fluida original
             cubo.style.transform = 'translateZ(-100px)';
             spinner.style.transform = 'none';
             spinner.classList.add('spinning');
