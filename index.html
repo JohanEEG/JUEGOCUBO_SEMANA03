@@ -24,7 +24,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
             min-height: 100vh;
         }
 
@@ -38,17 +37,16 @@
         .game-area {
             width: 100%;
             max-width: 300px;
-            height: 300px;
+            height: 320px;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
         }
 
         .scene {
             width: 200px;
             height: 200px;
-            perspective: 1000px;
+            perspective: 1200px;
         }
 
         .cube {
@@ -57,15 +55,7 @@
             position: relative;
             transform-style: preserve-3d;
             transform: translateZ(-100px) rotateX(-20deg) rotateY(35deg);
-        }
-
-        .cube.idle-spinning {
-            animation: rotarPasivo 15s infinite linear;
-        }
-
-        @keyframes rotarPasivo {
-            0% { transform: translateZ(-100px) rotateX(-20deg) rotateY(0deg); }
-            100% { transform: translateZ(-100px) rotateX(-20deg) rotateY(360deg); }
+            transition: transform 0.1s linear;
         }
 
         .cube__face {
@@ -80,7 +70,7 @@
             font-weight: bold;
             color: #111;
             border-radius: 12px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.15);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
             backface-visibility: hidden;
         }
 
@@ -95,7 +85,7 @@
             width: 100%;
             display: flex;
             justify-content: center;
-            padding-bottom: 30px;
+            padding: 20px 0;
         }
 
         button.roll-btn {
@@ -111,13 +101,13 @@
         }
 
         button.roll-btn:active { transform: scale(0.98); }
-        button.roll-btn:disabled { background: #95a5a6; box-shadow: none; }
+        button.roll-btn:disabled { background: #95a5a6; }
 
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             justify-content: center;
             align-items: center;
             z-index: 20;
@@ -137,35 +127,22 @@
         .modal-header {
             font-size: 20px;
             font-weight: bold;
-            padding: 8px 16px;
+            padding: 10px 16px;
             border-radius: 20px;
-            display: inline-block;
             margin-bottom: 15px;
-            border: 1px solid #ccc;
         }
 
-        .modal-body { 
-            font-size: 15px; 
-            line-height: 1.5; 
-            color: #333; 
-            margin-bottom: 20px; 
-            text-align: left;
-        }
-        .modal-timer { 
-            font-weight: bold; 
-            color: #e74c3c; 
-            margin-bottom: 15px; 
-        }
-        .close-btn { 
-            background: #34495e; 
-            color: white; 
-            padding: 12px 30px; 
-            border: none; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            width: 100%; 
-            font-weight: bold;
+        .modal-body { font-size: 15px; line-height: 1.6; text-align: left; }
+        .close-btn {
+            background: #34495e;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -175,7 +152,7 @@
 
     <div class="game-area">
         <div class="scene">
-            <div class="cube idle-spinning" id="cube">
+            <div class="cube" id="cube">
                 <div class="cube__face cube__face--1">🔑 Decisión</div>
                 <div class="cube__face cube__face--2">🔍 Verificación</div>
                 <div class="cube__face cube__face--3">🧠 Conexión</div>
@@ -194,54 +171,79 @@
         <div class="modal-content">
             <div class="modal-header" id="modalTitle"></div>
             <div class="modal-body" id="modalBody"></div>
-            <div class="modal-timer" id="modalTimer"></div>
             <button class="close-btn" onclick="cerrarModal()">Entendido</button>
         </div>
     </div>
 
     <script>
         const retos = {
-            1: { titulo: "🔑 Ética en Acción", color: "var(--color-rosa)", texto: "<b>Caso:</b> Sos dev junior. Tu jefe pide recopilar ubicación de usuarios sin permiso. Necesitás el trabajo.<br><br><b>Reto:</b> ¿Qué hacés? Justificá usando autonomía o consecuencias.", tiempo: "⏱️ Tiempo: 30s" },
-            2: { titulo: "🔍 Dominio de la Información", color: "var(--color-amarillo)", texto: "<b>Reto:</b> Artículo dice que U pública fue hackeada (80k expedientes). El sitio no tiene autor.<br><br><b>Pregunta:</b> ¿Cómo verificás? Nombrá 3 pasos concretos antes de compartir.", tiempo: "⏱️ Tiempo: 40s" },
-            3: { titulo: "🧠 Reto STEAM", color: "var(--color-naranja)", texto: "<b>Clasificá estos casos rápidos:</b><br>1. GPS apagado pero guarda ruta.<br>2. Empleado publica datos en LinkedIn.<br>3. IA rechaza crédito sin explicar.<br>4. U revisa tu correo sin avisar.<br>5. Usan tu foto sin permiso.", tiempo: "💡 Meta: Clasificá bien 4 de 5." },
-            4: { titulo: "🔒 Privacidad bajo presión", color: "var(--color-verde)", texto: "<b>Caso:</b> Clínica vende datos a aseguradoras mediante IA. Clientes firmaron consentimiento hace 5 años.<br><br><b>Respondé:</b> ¿Cuál es el acto ético del dev que lo descubre y qué ley de Costa Rica lo regula?", tiempo: "" },
-            5: { titulo: "⚖️ Libertad con responsabilidad", color: "var(--color-morado)", texto: "<b>Situación:</b> Influencer destruye reputación de un negocio local con video falso pagado por la competencia.<br><br><b>Pregunta:</b> ¿Quién es responsable éticamente y qué consecuencias deba asumir?", tiempo: "" },
-            6: { titulo: "🛡️ Mis Derechos Digitales", color: "var(--color-azul)", texto: "<b>Caso:</b> Borrás tu cuenta de una app. Un mes después te siguen enviando correos con tus gustos. Te dicen que los datos ya son de ellos.<br><br><b>Pregunta:</b> ¿Qué derecho se violó y qué podés exigir legalmente?", tiempo: "" }
+            1: { titulo: "🔑 Ética en Acción", color: "var(--color-rosa)", texto: "<b>Caso:</b> Sos dev junior. Tu jefe pide recopilar ubicación de usuarios sin permiso...<br><br><b>Reto:</b> ¿Qué hacés?" },
+            2: { titulo: "🔍 Dominio de la Información", color: "var(--color-amarillo)", texto: "<b>Reto:</b> Artículo dice que U pública fue hackeada...<br><br><b>Pregunta:</b> ¿Cómo verificás?" },
+            3: { titulo: "🧠 Reto STEAM", color: "var(--color-naranja)", texto: "<b>Clasificá estos casos rápidos:</b><br>1. GPS apagado...<br>2. Empleado publica datos..." },
+            4: { titulo: "🔒 Privacidad bajo presión", color: "var(--color-verde)", texto: "<b>Caso:</b> Clínica vende datos a aseguradoras..." },
+            5: { titulo: "⚖️ Libertad con responsabilidad", color: "var(--color-morado)", texto: "<b>Situación:</b> Influencer destruye reputación..." },
+            6: { titulo: "🛡️ Mis Derechos Digitales", color: "var(--color-azul)", texto: "<b>Caso:</b> Borrás tu cuenta de una app..." }
         };
 
-        const objetivosCubo = {
-            1: { x:   0, y:   0 },
-            2: { x:   0, y: -90 },
-            3: { x:   0, y: 180 },
-            4: { x:   0, y:  90 },
-            5: { x: -90, y:   0 },
-            6: { x:  90, y:   0 }
-        };
+        let isRolling = false;
+
+        function getVisibleFace() {
+            const cube = document.getElementById('cube');
+            const style = window.getComputedStyle(cube);
+            const transform = style.transform;
+
+            if (!transform || transform === 'none') return 1;
+
+            // Extraer la matriz de transformación
+            const values = transform.replace(/[^0-9eE.,-]/g, '').split(',').map(Number);
+            if (values.length < 16) return 1;
+
+            // Calcular qué cara está más hacia la cámara (eje Z)
+            const matrix = values;
+            const rotX = Math.round(Math.atan2(matrix[6], matrix[10]) * (180 / Math.PI));
+            const rotY = Math.round(Math.atan2(-matrix[2], Math.sqrt(matrix[6]*matrix[6] + matrix[10]*matrix[10])) * (180 / Math.PI));
+
+            // Normalizar ángulos
+            let normalizedX = ((rotX % 360) + 360) % 360;
+            let normalizedY = ((rotY % 360) + 360) % 360;
+
+            // Determinar cara según ángulos
+            if (normalizedX > 45 && normalizedX < 135) return 5;      // Arriba
+            if (normalizedX > 225 && normalizedX < 315) return 6;     // Abajo
+            if (normalizedY > 45 && normalizedY < 135) return 4;      // Izquierda
+            if (normalizedY > 225 && normalizedY < 315) return 2;     // Derecha
+            if (normalizedY > 135 && normalizedY < 225) return 3;     // Atrás
+            return 1; // Frente
+        }
 
         function lanzarCubo() {
+            if (isRolling) return;
+            isRolling = true;
+
             const cubo = document.getElementById('cube');
             const boton = document.getElementById('btnLanzar');
-            
+
             boton.disabled = true;
-            cubo.classList.remove('idle-spinning');
 
-            const caraGanadora = Math.floor(Math.random() * 6) + 1;
+            // Giros aleatorios realistas
+            const vueltas = 6 + Math.floor(Math.random() * 4);
+            const extraX = Math.random() * 60 - 30;
+            const extraY = Math.random() * 60 - 30;
 
-            // Más realismo
-            const vueltas = 5 + Math.floor(Math.random() * 3); // 5 a 7 vueltas
-            const target = objetivosCubo[caraGanadora];
+            const destinoX = vueltas * 360 + extraX;
+            const destinoY = vueltas * 360 + extraY;
 
-            const destinoX = (vueltas * 360) + target.x + (Math.random() * 30 - 15);
-            const destinoY = (vueltas * 360) + target.y + (Math.random() * 30 - 15);
-
-            // Animación más natural
-            cubo.style.transition = "transform 3.4s cubic-bezier(0.25, 0.1, 0.3, 1)";
+            cubo.style.transition = "transform 3.8s cubic-bezier(0.25, 0.1, 0.35, 1)";
             cubo.style.transform = `translateZ(-100px) rotateX(${destinoX}deg) rotateY(${destinoY}deg)`;
 
+            // Detectar cara REAL después de la animación
             setTimeout(() => {
-                mostrarReto(caraGanadora);
+                const caraReal = getVisibleFace();
+                mostrarReto(caraReal);
+                
                 boton.disabled = false;
-            }, 3500);
+                isRolling = false;
+            }, 4000);
         }
 
         function mostrarReto(id) {
@@ -249,23 +251,15 @@
             document.getElementById('modalTitle').innerText = reto.titulo;
             document.getElementById('modalTitle').style.backgroundColor = reto.color;
             document.getElementById('modalBody').innerHTML = reto.texto;
-            document.getElementById('modalTimer').innerText = reto.tiempo || "";
             document.getElementById('modal').style.display = 'flex';
         }
 
         function cerrarModal() {
-            const modal = document.getElementById('modal');
+            document.getElementById('modal').style.display = 'none';
+            
             const cubo = document.getElementById('cube');
-            
-            modal.style.display = 'none';
-
-            cubo.style.transition = "transform 0.8s ease-out";
+            cubo.style.transition = "transform 0.6s ease";
             cubo.style.transform = "translateZ(-100px) rotateX(-20deg) rotateY(35deg)";
-            
-            setTimeout(() => {
-                cubo.style.transition = "none";
-                cubo.classList.add('idle-spinning');
-            }, 800);
         }
     </script>
 </body>
